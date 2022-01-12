@@ -1,0 +1,8 @@
+Log file created at: 2022/01/12 09:33:32
+Running on machine: chery
+Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
+W0112 09:33:32.913937 18830 initializer.cpp:23] [AddGpsPositionData]: No enought imu data!
+W0112 09:33:33.060295 18830 initializer.cpp:23] [AddGpsPositionData]: No enought imu data!
+W0112 09:33:33.116485 18830 initializer.cpp:23] [AddGpsPositionData]: No enought imu data!
+W0112 09:33:33.213613 18830 initializer.cpp:23] [AddGpsPositionData]: No enought imu data!
+W0112 09:33:33.323101 18830 initializer.cpp:23] [AddGpsPositionData]: No enought imu data!
