@@ -22,10 +22,16 @@ LocalizationWrapper::LocalizationWrapper(ros::NodeHandle& nh) {
 
     std::string log_folder = "/home/log";
     ros::param::get("log_folder", log_folder);
+    log_folder.append("/log");
+
+    if(access(log_folder.c_str(), 0) == -1)
+    {
+        auto unused = system((std::string("mkdir -p ") + log_folder).c_str());
+    }
 
     // Log.
-    FLAGS_log_dir = log_folder + "/log";
-    file_state_.open(log_folder + "/log/state.csv");
+    FLAGS_log_dir = log_folder;
+    file_state_.open(log_folder + "/state.csv");
     file_state_ << "timestamp" << "," 
                 << "latitude" << "," << "longitude" << "," << "altitude" << ","
                 << "position_x" << "," << "position_y" << "," << "position_z" << ","
@@ -33,7 +39,7 @@ LocalizationWrapper::LocalizationWrapper(ros::NodeHandle& nh) {
                 << "attitude_x" << "," << "attitude_y" << "," << "attitude_z" << "," << "attitude_w" << "," 
                 << "acc_bias_x" << "," << "acc_bias_y" << "," << "acc_bias_z" << ","
                 << "gyro_bias_x" << "," << "gyro_bias_y" << "," << "gyro_bias_z" << "\n";
-    file_gps_.open(log_folder +"/log/gps.csv");
+    file_gps_.open(log_folder +"/gps.csv");
     file_gps_ << "timestamp" << "," 
               << "latitude" << "," << "longitude" << "," << "altitude" << ","
               << "position_x" << "," << "position_y" << "," << "position_z" << "\n";
