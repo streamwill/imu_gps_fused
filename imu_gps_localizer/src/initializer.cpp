@@ -13,13 +13,13 @@ Initializer::Initializer(const Eigen::Vector3d& init_I_p_Gps)
 void Initializer::AddImuData(const ImuDataPtr imu_data_ptr) {
     imu_buffer_.push_back(imu_data_ptr);
 
-    if (imu_buffer_.size() > kImuDataBufferLength) {
+    if (imu_buffer_.size() > imuBufferSize) {
         imu_buffer_.pop_front();
     }
 }
 
 bool Initializer::AddGpsPositionData(const GpsPositionDataPtr gps_data_ptr, State* state) {
-    if (imu_buffer_.size() < kImuDataBufferLength) {
+    if (imu_buffer_.size() < imuBufferSize) {
         LOG(WARNING) << "[AddGpsPositionData]: No enought imu data!";
         return false;
     }
@@ -42,13 +42,17 @@ bool Initializer::AddGpsPositionData(const GpsPositionDataPtr gps_data_ptr, Stat
     // So, just set it to zero and given big covariance.
     state->G_v_I.setZero();
 
+    // Currently set to Identity
+    state->G_R_I.setIdentity();
+
     // We can use the direction of gravity to set roll and pitch. 
     // But, we cannot set the yaw. 
     // So, we set yaw to zero and give it a big covariance.
-    if (!ComputeG_R_IFromImuData(&state->G_R_I)) {
-        LOG(WARNING) << "[AddGpsPositionData]: Failed to compute G_R_I!";
-        return false;
-    }
+
+    // if (!ComputeG_R_IFromImuData(&state->G_R_I)) {
+    //     LOG(WARNING) << "[AddGpsPositionData]: Failed to compute G_R_I!";
+    //     return false;
+    // }
 
     // Set bias to zero.
     state->acc_bias.setZero();
@@ -85,7 +89,7 @@ bool Initializer::ComputeG_R_IFromImuData(Eigen::Matrix3d* G_R_I) {
     }
     const Eigen::Vector3d std_acc = (sum_err2 / (double)imu_buffer_.size()).cwiseSqrt();
 
-    if (std_acc.maxCoeff() > kAccStdLimit) {
+    if (std_acc.maxCoeff() > accStdLimit) {
         LOG(WARNING) << "[ComputeG_R_IFromImuData]: Too big acc std: " << std_acc.transpose();
         return false;
     }

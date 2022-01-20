@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <ctime>
 #include <Eigen/Core>
 
 namespace ImuGpsLocalization {
@@ -16,11 +17,20 @@ using ImuDataPtr = std::shared_ptr<ImuData>;
 struct GpsPositionData {
     double timestamp;     // In second.
  
-    Eigen::Vector3d lla;  // Latitude in degree, longitude in degree, and altitude in meter.
-    Eigen::Matrix3d cov;  // Covariance in m^2.
-    Eigen::Vector3d xyz;  // x,y,z in m, at ENU frame.
+    Eigen::Vector3d lla;    // Latitude in degree, longitude in degree, and altitude in meter.
+    Eigen::Matrix3d cov;    // Covariance in m^2.
+    Eigen::Vector3d xyz;    // x,y,z in m, at ENU frame.
+    Eigen::Vector3d rpy;    //roll,pitch,yaw in degree, at NED frame
 };
 using GpsPositionDataPtr = std::shared_ptr<GpsPositionData>;
+
+struct LidarPoseData{
+    double timestamp;       // In second.
+
+    Eigen::Matrix4d pose;   // Transform matrix at map frame.
+    Eigen::Matrix3d cov;    // Covariance of position TODO
+};
+using LidarPoseDataPtr = std::shared_ptr<LidarPoseData>;
 
 struct State {
     double timestamp;

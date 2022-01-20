@@ -6,16 +6,12 @@ namespace ImuGpsLocalization {
 
 GpsProcessor::GpsProcessor(const Eigen::Vector3d& I_p_Gps) : I_p_Gps_(I_p_Gps) { }
 
-bool GpsProcessor::UpdateStateByGpsPosition(const Eigen::Vector3d& init_lla, const GpsPositionDataPtr gps_data_ptr, State* state) {
+bool GpsProcessor::UpdateStateByGpsPosition(const GpsPositionDataPtr gps_data_ptr, State* state) {
 
-    // Convert wgs84 lla to ENU frame.
-    Eigen::Vector3d G_p_Gps;
-    ConvertLLAToENU(init_lla, gps_data_ptr->lla, &G_p_Gps);
-
-    // compute residual and jacobians of residual
+    // compute residual and jacobian of residual
     Eigen::Matrix<double, 3, 15> H;
     Eigen::Vector3d residual;
-    ComputeJacobianAndResidual(G_p_Gps, *state, &H, &residual);
+    ComputeJacobianAndResidual(gps_data_ptr->xyz, *state, &H, &residual);
     const Eigen::Matrix3d& V = gps_data_ptr->cov;
 
     // EKF.

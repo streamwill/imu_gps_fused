@@ -1,12 +1,6 @@
-#include <memory>
-
+#include "localization_wrapper.h"
 #include <glog/logging.h>
 #include <ros/ros.h>
-#include <sensor_msgs/Imu.h>
-#include <sensor_msgs/NavSatFix.h>
-
-#include "localization_wrapper.h"
-
 int main (int argc, char** argv) {
     // Set glog.
     google::InitGoogleLogging(argv[0]);

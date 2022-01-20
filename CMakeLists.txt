@@ -3,11 +3,14 @@ project(imu_gps_localization)
 
 add_compile_options(-std=c++14)
 
-## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS
   roscpp tf
-  std_msgs nav_msgs 
+  std_msgs nav_msgs geometry_msgs
+  pcl_conversions
 )
+find_package(Eigen3  REQUIRED)
+find_package(PCL 1.8 REQUIRED)
+#find_package(Glog REQUIRED)
 
 catkin_package()
 
@@ -15,22 +18,39 @@ add_subdirectory(imu_gps_localizer)
 
 include_directories(
   ${catkin_INCLUDE_DIRS}
-  ${EIGEN3_INCLUDE_DIR}
+  ${EIGEN3_INCLUDE_DIRS}
+  ${PCL_INCLUDE_DIRS}
+  #${GLOG_INCLUDE_DIRS}
   imu_gps_localizer/include
   ros_wrapper/include
 )
+link_directories(
+  ros_wrapper/lib
+)
 
+
+# build lib ros_wrapper_lib
 add_library(ros_wrapper_lib
 	ros_wrapper/src/localization_wrapper.cpp
 )
+
 target_link_libraries(ros_wrapper_lib
   ${catkin_LIBRARIES}
-  imu_gps_localizer_lib
+  ${PCL_LIBRARIES}
+  #${GLOG_LIBRARIES}
   glog
+  imu_gps_localizer_lib
 )
 
-## Localization node.
-add_executable(${PROJECT_NAME}_node ros_wrapper/src/localization_node.cpp)
+
+# build exe imu_gps_localization_node
+add_executable(${PROJECT_NAME}_node 
+  ros_wrapper/src/localization_node.cpp
+)
+
 target_link_libraries(${PROJECT_NAME}_node
+  #${GLOG_LIBRARIES}
+  glog
   ros_wrapper_lib
+  ndt_gpu
 )

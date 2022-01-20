@@ -6,8 +6,8 @@
 
 namespace ImuGpsLocalization {
 
-constexpr int kImuDataBufferLength = 100;
-constexpr int kAccStdLimit         = 3.;
+constexpr int imuBufferSize = 100;
+constexpr float accStdLimit = 3.0;
 
 class Initializer {
 public:

@@ -2,7 +2,8 @@
 
 #include <iostream>
 #include <Eigen/Core>
-#include <LocalCartesian.hpp>
+//#include <LocalCartesian.hpp>
+#include <GeographicLib/LocalCartesian.hpp>
 
 namespace ImuGpsLocalization {
 
@@ -25,6 +26,44 @@ inline void ConvertENUToLLA(const Eigen::Vector3d& init_lla,
     local_cartesian.Reset(init_lla(0), init_lla(1), init_lla(2));
     local_cartesian.Reverse(point_enu(0), point_enu(1), point_enu(2), 
                             point_lla->data()[0], point_lla->data()[1], point_lla->data()[2]);                            
+}
+
+inline void ConvertENU2BODY(const Eigen::Vector3d& init_rpy,
+                           Eigen::Vector3d& body_xyz,
+                           Eigen::Vector3d& body_rpy){
+    // rpy init angle
+    Eigen::AngleAxisd ria(0 * kDegreeToRadian, Eigen::Vector3d::UnitX());
+    Eigen::AngleAxisd pia(0 * kDegreeToRadian, Eigen::Vector3d::UnitY());
+    Eigen::AngleAxisd yia(init_rpy(2) * kDegreeToRadian, Eigen::Vector3d::UnitZ());
+    Eigen::Matrix3d mat_init;    mat_init = yia * pia * ria;
+
+    // rpy body angle
+    Eigen::AngleAxisd rba(body_rpy(0) * kDegreeToRadian, Eigen::Vector3d::UnitX());
+    Eigen::AngleAxisd pba(body_rpy(1) * kDegreeToRadian, Eigen::Vector3d::UnitY());
+    Eigen::AngleAxisd yba(body_rpy(2) * kDegreeToRadian, Eigen::Vector3d::UnitZ());
+    Eigen::Matrix3d mat_body;   mat_body = yba * pba * rba;
+
+    // rpy flu to body
+    Eigen::AngleAxisd rf2ba(M_PI, Eigen::Vector3d::UnitX());
+    Eigen::AngleAxisd pf2ba(0, Eigen::Vector3d::UnitY());
+    Eigen::AngleAxisd yf2ba(0, Eigen::Vector3d::UnitZ());
+    Eigen::Matrix3d mat_f2b;    mat_f2b = yf2ba * pf2ba * rf2ba;
+
+    // rpy ned to enu
+    Eigen::AngleAxisd rn2ea(M_PI, Eigen::Vector3d::UnitX());
+    Eigen::AngleAxisd pn2ea(0, Eigen::Vector3d::UnitY());
+    Eigen::AngleAxisd yn2ea(M_PI / 2, Eigen::Vector3d::UnitZ());
+    Eigen::Matrix3d mat_n2e;    mat_n2e = yn2ea * pn2ea * rn2ea;
+
+    // convert atitude
+    Eigen::Matrix3d mat_now;
+    mat_now = mat_f2b * mat_init.inverse() * mat_body * mat_f2b.inverse();
+    body_rpy = mat_now.eulerAngles(0, 1, 2);
+
+    // convert position
+    Eigen::Vector3d vec_now = body_xyz;
+    vec_now = mat_f2b * mat_init.inverse() * mat_n2e * vec_now;
+    body_xyz = vec_now;
 }
 
 inline Eigen::Matrix3d GetSkewMatrix(const Eigen::Vector3d& v) {
