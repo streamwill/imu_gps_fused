@@ -4,17 +4,18 @@
     <param name="acc_bias_noise"  type="double" value="1e-6" />
     <param name="gyro_bias_noise" type="double" value="1e-8" />
 
-    <param name="imu_p_gps_x"       type="double" value="0.0" />
-    <param name="imu_p_gps_y"       type="double" value="0.0" />
-    <param name="imu_p_gps_z"       type="double" value="0.0" />
+    <param name="poi_gps2imu_x"       type="double" value="0.0" />
+    <param name="poi_gps2imu_y"       type="double" value="0.0" />
+    <param name="poi_gps2imu_z"       type="double" value="0.0" />
 
-    <param name="imu_p_lidar_x"       type="double" value="0.1" />
-    <param name="imu_p_lidar_y"       type="double" value="0.0" />
-    <param name="imu_p_lidar_z"       type="double" value="1.65" />
+    <param name="poi_lidar2imu_x"       type="double" value="0.8" />
+    <param name="poi_lidar2imu_y"       type="double" value="0.0" />
+    <param name="poi_lidar2imu_z"       type="double" value="1.6" />
 
-    <param name="map_box_size"       type="double" value="200" />
-    <param name="map_voxel_size"       type="double" value="2.0" />
-    <param name="frame_voxel_size"       type="double" value="2.0" />
+    <param name="box_size_map"       type="double" value="200" />
+    <param name="voxel_size_map"     type="double" value="2.0" />
+    <param name="voxel_size_frame"   type="double" value="2.0" />
+    <param name="ndt_resolution"     type="double" value="3.0" />
 
     <param name="log_folder"      type="string" value="$(find imu_gps_localization)" />
 

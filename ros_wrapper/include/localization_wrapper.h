@@ -12,6 +12,7 @@
 //ROS
 #include <geometry_msgs/TwistStamped.h>
 #include <nav_msgs/Path.h>
+#include <nav_msgs/Odometry.h>
 #include <ros/ros.h>
 #include <sensor_msgs/NavSatFix.h>
 #include <sensor_msgs/Imu.h>
@@ -28,9 +29,10 @@
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/crop_box.h>
 #include <pcl/registration/ndt.h>
+#include <pcl/registration/gicp.h>
 #include <ndt_gpu/NormalDistributionsTransform.h>
 
-//NOW
+//LOCAL
 #include "imu_gps_localizer/imu_gps_localizer.h"
 
 //速腾雷达自定义点云类型(x,y,z,intensity,ring,time_stamp)
@@ -65,15 +67,15 @@ public:
 
 private:
     void LogState(const ImuGpsLocalization::State& state);
-    void LogGps(const ImuGpsLocalization::GpsPositionDataPtr gps_data_ptr);
-    void LogLidar(const ImuGpsLocalization::LidarPoseDataPtr lidar_data_ptr);
+    void LogGps(const ImuGpsLocalization::GpsDataPtr gps_data_ptr);
+    void LogLidar(const ImuGpsLocalization::LidarDataPtr lidar_data_ptr);
 
     void PublishSystemState(const ImuGpsLocalization::State& state);
-    void PublisGPSPath(const ImuGpsLocalization::GpsPositionDataPtr gps_data_ptr);
-    void PublishLidarPath(const ImuGpsLocalization::LidarPoseDataPtr lidar_data_ptr);
+    void PublisGPSPath(const ImuGpsLocalization::GpsDataPtr gps_data_ptr);
+    void PublishLidarPath(const ImuGpsLocalization::LidarDataPtr lidar_data_ptr);
 
     void LoadCloudMap(const std::string& map_path);
-    void ResetLocalMap(float x, float y, float z);
+    void ResetLocalMap(double x, double y, double z);
     void MatchFrame2Map(const sensor_msgs::PointCloud2::Ptr& lidar_msg_ptr, Eigen::Matrix4d& pose_frame);
     
     ros::Subscriber sub_imu_raw_;
@@ -107,13 +109,17 @@ private:
 
     pcl::VoxelGrid<pointXYZI> voxel_filter_;
     pcl::CropBox<pointXYZI> box_filter_;
+    double box_size_map_;
+    double voxel_size_map_;
+    double voxel_size_frame_;
+    double ndt_resolution_;
     Eigen::Vector3d box_center_;
     Eigen::Matrix4d pose_last_;
     Eigen::Matrix4d pose_step_;
     
-    pcl::NormalDistributionsTransform<pointXYZI, pointXYZI>::Ptr ndt_ptr_;  //ndt_cpu
+    pcl::NormalDistributionsTransform<pointXYZI, pointXYZI>::Ptr ndt_cpu_ptr_;  //ndt_cpu
     std::shared_ptr<gpu::GNormalDistributionsTransform>  ndt_gpu_ptr_;      //ndt_gpu
-
+    pcl::GeneralizedIterativeClosestPoint<pointXYZI, pointXYZI>::Ptr gicp_ptr_;      //gicp
 
     bool has_init_gps_;
     std::unique_ptr<ImuGpsLocalization::ImuGpsLocalizer> imu_gps_localizer_ptr_;

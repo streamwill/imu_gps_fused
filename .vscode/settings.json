@@ -80,6 +80,8 @@
         "set": "cpp",
         "stack": "cpp",
         "forward_list": "cpp",
-        "memory_resource": "cpp"
+        "memory_resource": "cpp",
+        "numericaldiff": "cpp",
+        "dense": "cpp"
     }
 }

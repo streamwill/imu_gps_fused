@@ -5,13 +5,18 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
 find_package(Eigen3  REQUIRED)
 find_package(GeographicLib REQUIRED)
-#find_package(Glog REQUIRED)
+find_package(glog REQUIRED)
+
+find_package(fmt REQUIRED)
+find_package(Sophus REQUIRED)
+
+message("=========fmt:${EIGEN3_INCLUDE_DIR}\n")
 
 include_directories(
   include
   ${EIGEN3_INCLUDE_DIR}
   ${GeographicLib_INCLUDE_DIRS}
-  #${GLOG_INCLUDE_DIRS}
+  ${GLOG_INCLUDE_DIR}
   )
 
 # build lib imu_gps_localizer_lib
@@ -25,6 +30,5 @@ add_library(imu_gps_localizer_lib
 
 target_link_libraries(imu_gps_localizer_lib
   ${GeographicLib_LIBRARIES}
-  #${GLOG_LIBRARIES}
-  glog
+  ${GLOG_LIBRARY}
   )
