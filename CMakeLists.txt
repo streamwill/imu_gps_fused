@@ -11,6 +11,10 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(Eigen3  REQUIRED)
 find_package(PCL 1.8 REQUIRED)
 find_package(CUDA REQUIRED)
+find_package(Glog REQUIRED)
+
+message("\n=========[CUDA INCLUDE] : ${CUDA_INCLUDE_DIRS}")
+message("=========[CUDA LIBRARY] : ${CUDA_LIBRARIES}\n")
 
 catkin_package()
 
@@ -38,7 +42,7 @@ target_link_libraries(ros_wrapper_lib
   ${catkin_LIBRARIES}
   ${PCL_LIBRARIES}
   ${CUDA_LIBRARIES}
-  glog
+  ${GLOG_LIBRARIES}
   imu_gps_localizer_lib
 )
 
@@ -49,7 +53,7 @@ add_executable(${PROJECT_NAME}_node
 )
 
 target_link_libraries(${PROJECT_NAME}_node
-  glog
+  ${GLOG_LIBRARIES}
   ros_wrapper_lib
   ndt_gpu
 )

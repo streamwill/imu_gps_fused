@@ -297,7 +297,7 @@ void LocalizationWrapper::PublishSystemState(const ImuGpsLocalization::State& st
     pose_state.pose.orientation.z = qua_state.z();
     pose_state.pose.orientation.w = qua_state.w();
 
-    while(path_state_.poses.size() > 1000)
+    while(path_state_.poses.size() > 5000)
     {
         path_state_.poses.erase(path_state_.poses.begin());
     }
@@ -481,7 +481,6 @@ void LocalizationWrapper::MatchFrame2Map(const sensor_msgs::PointCloud2::Ptr& li
 
     ndt_gpu_ptr_->align(pose_guess);
     pose_guess = ndt_gpu_ptr_->getFinalTransformation();
-    //pose_guess(2,3) = 0.0;  //matched by ndt the z-axis value are very bad
     pose_frame = pose_guess.cast<double>();
     
     pose_step_ = pose_last_.inverse() * pose_frame;
