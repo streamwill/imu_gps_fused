@@ -8,14 +8,14 @@
     <param name="poi_gps2imu_y"       type="double" value="0.0" />
     <param name="poi_gps2imu_z"       type="double" value="0.0" />
 
-    <param name="poi_lidar2imu_x"       type="double" value="0.8" />
+    <param name="poi_lidar2imu_x"       type="double" value="0.0" />
     <param name="poi_lidar2imu_y"       type="double" value="0.0" />
-    <param name="poi_lidar2imu_z"       type="double" value="1.6" />
+    <param name="poi_lidar2imu_z"       type="double" value="0.0" />
 
     <param name="box_size_map"       type="double" value="200" />
-    <param name="voxel_size_map"     type="double" value="2.0" />
-    <param name="voxel_size_frame"   type="double" value="2.0" />
-    <param name="ndt_resolution"     type="double" value="3.0" />
+    <param name="voxel_size_map"     type="double" value="1.0" />
+    <param name="voxel_size_frame"   type="double" value="1.0" />
+    <param name="ndt_resolution"     type="double" value="2.0" />
 
     <param name="log_folder"      type="string" value="$(find imu_gps_localization)" />
 
@@ -24,7 +24,6 @@
     <node pkg="rviz" type="rviz" name="rviz" output="screen" 
       args="-d $(find imu_gps_localization)/ros_wrapper/rviz/default.rviz" required="true">
     </node>
-
 
     <!-- <node name="nmea_topic_driver" pkg="nmea_navsat_driver" type="nmea_topic_driver" output="screen" /> -->
     <node name="imu_gps_localization_node" pkg="imu_gps_localization" type="imu_gps_localization_node" output="screen" />

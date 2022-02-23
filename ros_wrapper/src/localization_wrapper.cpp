@@ -6,7 +6,7 @@ LocalizationWrapper::LocalizationWrapper(ros::NodeHandle& nh) {
     sub_imu_raw_     = nh.subscribe("/imu_raw", 1000,  &LocalizationWrapper::ImuCallback, this);
     //sub_gps_fix_     = nh.subscribe("/fix", 10,  &LocalizationWrapper::GpsPositionCallback, this);
     sub_gps_nmea_    = nh.subscribe("/nmea_sentence", 100,  &LocalizationWrapper::NmeaCallback, this);
-    //sub_lidar_cloud_ = nh.subscribe("/points_raw", 10, &LocalizationWrapper::LidarCallback, this);
+    sub_lidar_cloud_ = nh.subscribe("/points_raw", 10, &LocalizationWrapper::LidarCallback, this);
 
     // publisger
     pub_state_ = nh.advertise<nav_msgs::Path>("/path_state", 1);
@@ -136,12 +136,9 @@ void LocalizationWrapper::ImuCallback(const sensor_msgs::ImuConstPtr& imu_msg_pt
         return;
     }
 
+    // update pose to lidar
     pose_last_.block<3,3>(0,0) = fused_state.rot_imu2enu;
     pose_last_.block<3,1>(0,3) = fused_state.poi_imu2enu;
-
-    // Eigen::Quaterniond qua_state(fused_state.rot_imu2enu); 
-    // printf("\033[32mqua_state after imu: [%f,%f,%f,%f]\033[0m\n", 
-    //     qua_state.x(), qua_state.y(), qua_state.z(), qua_state.w());
 
     // Publish fused state.
     PublishSystemState(fused_state);
@@ -207,7 +204,7 @@ void LocalizationWrapper::NmeaCallback(const nmea_msgs::SentenceConstPtr& nmea_m
             gps_data_ptr->lla << std::stod(sentence_vec.at(12)),
                                  std::stod(sentence_vec.at(13)),
                                  std::stod(sentence_vec.at(14)); 
-            gps_data_ptr->cov = Eigen::Matrix3d::Identity() * 0.0001;
+            gps_data_ptr->cov = Eigen::Matrix3d::Identity() * 1e-4;
             gps_data_ptr->rpy << std::stod(sentence_vec.at(5)),
                                  std::stod(sentence_vec.at(4)),
                                  std::stod(sentence_vec.at(3));
@@ -219,6 +216,8 @@ void LocalizationWrapper::NmeaCallback(const nmea_msgs::SentenceConstPtr& nmea_m
 
     //process gps state
     has_init_gps_ = imu_gps_localizer_ptr_->ProcessGpsData(gps_data_ptr);
+
+    // return when has not initialized
     if(!has_init_gps_){
         return;
     }
@@ -232,9 +231,15 @@ void LocalizationWrapper::NmeaCallback(const nmea_msgs::SentenceConstPtr& nmea_m
 
 void LocalizationWrapper::LidarCallback(const sensor_msgs::PointCloud2::Ptr& lidar_msg_ptr){
     
+    //add lidar pose after init gps
+    if(!has_init_gps_){
+        return;
+    }
+
     //init local map
     static bool has_local_map_(false);
     if(!has_local_map_){
+        box_center_ = pose_last_.block<3,1>(0,3);
         ResetLocalMap(box_center_(0), box_center_(1), box_center_(2));
         has_local_map_ = true;
     }    
@@ -254,11 +259,6 @@ void LocalizationWrapper::LidarCallback(const sensor_msgs::PointCloud2::Ptr& lid
         has_global_map_ = false;
     }
 
-    //add lidar pose after init gps
-    if(!has_init_gps_){
-        return;
-    }
-
     ImuGpsLocalization::LidarDataPtr lidar_data_ptr = std::make_shared<ImuGpsLocalization::LidarData>();
     lidar_data_ptr->timestamp = lidar_msg_ptr->header.stamp.toSec();
 
@@ -266,9 +266,9 @@ void LocalizationWrapper::LidarCallback(const sensor_msgs::PointCloud2::Ptr& lid
     MatchFrame2Map(lidar_msg_ptr, pose_matched);
 
     lidar_data_ptr->pose = pose_matched;
-    lidar_data_ptr->cov  = Eigen::Matrix3d::Identity() * 0.01;
+    lidar_data_ptr->cov  = Eigen::Matrix3d::Identity() * 1e-4;
 
-    //has_init_gps_ = imu_gps_localizer_ptr_->ProcessLidarData(lidar_data_ptr);
+    imu_gps_localizer_ptr_->ProcessLidarData(lidar_data_ptr);
 
     //publish lidar state
     PublishLidarPath(lidar_data_ptr);
@@ -408,13 +408,13 @@ void LocalizationWrapper::LogLidar(const ImuGpsLocalization::LidarDataPtr lidar_
 
 void LocalizationWrapper::LoadCloudMap(const std::string& map_path){
     pcl::io::loadPCDFile(map_path, *map_global_ptr_);
-    LOG(INFO) << "global map PATH: " << map_path.c_str();
-    LOG(INFO) << "global map SIZE: " << map_global_ptr_->points.size();
+    LOG(INFO) << "[global map PATH]: " << map_path.c_str();
+    LOG(INFO) << "[global map SIZE]: " << map_global_ptr_->points.size();
     double leaf_size = 1.0;
     voxel_filter_.setLeafSize(leaf_size, leaf_size, leaf_size);
     voxel_filter_.setInputCloud(map_global_ptr_);
     voxel_filter_.filter(*map_global_ptr_);
-    LOG(INFO) << "global map voxel filter leaf SIZE: " << leaf_size;
+    LOG(INFO) << "[global map voxel filter leaf SIZE]: " << leaf_size;
 }
 
 void LocalizationWrapper::ResetLocalMap(double x, double y, double z){
@@ -437,8 +437,7 @@ void LocalizationWrapper::ResetLocalMap(double x, double y, double z){
     msg_cloud_ptr->header.frame_id = "map";
     pub_local_map_.publish(*msg_cloud_ptr);
 
-    LOG(INFO) << "new local map cropbox center: " 
-              << box_center_(0) << ", " << box_center_(1) << ", " << box_center_(2);
+    //LOG(INFO) << "[new local map cropbox center]: " << box_center_(0) << ", " << box_center_(1) << ", " << box_center_(2);
 }
 
 void LocalizationWrapper::MatchFrame2Map(const sensor_msgs::PointCloud2::Ptr& lidar_msg_ptr, Eigen::Matrix4d& pose_frame){
@@ -466,7 +465,7 @@ void LocalizationWrapper::MatchFrame2Map(const sensor_msgs::PointCloud2::Ptr& li
     
     // update local map
     for (size_t i = 0; i < 3; i++)    {
-        if(std::fabs(pose_last_(i, 3) - box_center_(i)) < 50.0){
+        if(std::fabs(pose_last_(i, 3) - box_center_(i)) < 30.0){
             continue;
         }
         ResetLocalMap(pose_last_(0, 3), pose_last_(1, 3), pose_last_(2, 3));

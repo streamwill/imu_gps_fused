@@ -15,7 +15,8 @@ namespace ImuGpsLocalization{
     private:
         const Eigen::Vector3d poi_lidar2imu_;   //lidar position from imu frame
         
-        void ComputeObserveAndJacobian(const Eigen::Matrix4d& pose,
+        void ComputeObserveAndJacobian(const Eigen::Vector3d& poi_lidar_enu, 
+                                       const Eigen::Quaterniond& qua_lidar_enu,
                                        const State& state,
                                        Eigen::Matrix<double, 6, 1>* observe,
                                        Eigen::Matrix<double, 6, 15>* jacobian);
