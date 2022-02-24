@@ -57,7 +57,7 @@ add_executable(${PROJECT_NAME}_node
 )
 
 target_link_libraries(${PROJECT_NAME}_node
-  glog
+${GLOG_LIBRARIES}
   ros_wrapper_lib
   ndt_gpu
 )
