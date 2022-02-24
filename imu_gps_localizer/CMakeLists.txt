@@ -1,17 +1,16 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.10.0)
 project(imu_gps_localizer)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
 find_package(Eigen3  REQUIRED)
 find_package(GeographicLib REQUIRED)
-find_package(Glog REQUIRED)
 
-find_package(fmt REQUIRED)
+find_package(Fmt REQUIRED)
 find_package(Sophus REQUIRED)
 
-message("\n=========[Eigen3 INCLUDE] : ${EIGEN3_INCLUDE_DIRS}")
-message("=========[Glog   LIBRARY] : ${GLOG_LIBRARIES}\n")
+message("=========[GeographicLib_INCLUDE_DIRS ] : ${GeographicLib_INCLUDE_DIRS}")
+message("=========[GeographicLib_LIBRARIES ] : ${GeographicLib_LIBRARIES}\n")
 
 include_directories(
   include
