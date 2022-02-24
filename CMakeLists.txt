@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.10.0)
 project(imu_gps_localization)
 
 add_compile_options(-std=c++14)
@@ -11,6 +11,14 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(Eigen3  REQUIRED)
 find_package(PCL 1.8 REQUIRED)
 find_package(CUDA REQUIRED)
+
+set(GLOG_INCLUDE_DIRS /usr/local/include/glog)
+set(GLOG_LIBRARIES /usr/local/lib/libglog.so)
+
+# find_package(Glog REQUIRED)
+message("=========[CMAKE_MODULE_PATH ] : ${CMAKE_MODULE_PATH}")
+message("=========[GLOG_INCLUDE_DIRS ] : ${GLOG_INCLUDE_DIRS}")
+message("=========[GLOG_LIBRARIES ] : ${GLOG_LIBRARIES}\n")
 
 catkin_package()
 
@@ -38,7 +46,7 @@ target_link_libraries(ros_wrapper_lib
   ${catkin_LIBRARIES}
   ${PCL_LIBRARIES}
   ${CUDA_LIBRARIES}
-  glog
+  ${GLOG_LIBRARIES}
   imu_gps_localizer_lib
 )
 
