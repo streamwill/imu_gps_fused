@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <Eigen/Core>
-#include <LocalCartesian.hpp>
+#include <GeographicLib/LocalCartesian.hpp>
 
 namespace ImuGpsLocalization {
 
